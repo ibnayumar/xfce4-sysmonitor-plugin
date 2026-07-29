@@ -1,0 +1,9 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Encoding=UTF-8
+Name=Resource Monitor
+Comment=Provide CPU/GPU stats
+Icon=utilities-system-monitor
+X-XFCE-Module=sysmonitor
+X-XFCE-Internal=false
+X-XFCE-API=2.0
