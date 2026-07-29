@@ -612,10 +612,10 @@ static gboolean update_display(gpointer user_data) {
     /* Fan RPM Speeds */
     long rpm = read_sys_fd(s->fds[FD_FAN]); 
     if (rpm > 0) { 
-        snprintf(buf, sizeof(buf), "%ld rpm", rpm); 
+        snprintf(buf, sizeof(buf), "%ld rpm ", rpm); 
         set_label(&s->l_fan, buf, "sysmon-lvl-4"); 
     } else {
-        set_label(&s->l_fan, " _____ rpm", "sysmon-lvl-0");
+        set_label(&s->l_fan, " _____ rpm ", "sysmon-lvl-0");
     }
     
     /* Dynamic Thermal Throttling Logic */
