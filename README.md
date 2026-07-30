@@ -5,7 +5,7 @@
 
 <br>A lightweight, real-time system monitor and thermal controller for the XFCE desktop panel.
 
-This was a **personal project** written for my own Latitude 7490 laptop. It is not intended to be universal — built to keep my laptop's temperature under control while keeping an eye on system resources.
+This was a **personal project** written for my own laptop. It was not intended to be universal — built to keep my laptop's temperature under control while keeping an eye on system resources.
 
 
 ## Features
@@ -35,26 +35,53 @@ This was a **personal project** written for my own Latitude 7490 laptop. It is n
 
 This plugin was written for a specific machine and will need adaptation for other systems:
 
-| Component           | Path / Mechanism                                          | Notes                              |
-|---------------------|-----------------------------------------------------------|------------------------------------|
-| CPU frequency       | `/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq`   | Intel pstate                       |
-| CPU temp            | First `coretemp` hwmon `temp1_input`                      | Package temperature                |
-| GPU frequency       | `/sys/class/drm/card0/gt_act_freq_mhz`                    | Intel iGPU                         |
-| Fan                 | First available `fan1_input` under hwmon                  |                                    |
-| Battery             | `/sys/class/power_supply/BAT0/`                           |                                    |
-| Throttling control  | `intel_pstate/max_perf_pct` , `gt_max_freq_mhz` ,<br> `gt_boost_freq_mhz`| Udev Rules  |
+| Component | Path / Mechanism |
+| :--- | :--- |
+| **CPU Frequency** | `/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq` |
+| **CPU Temp** | `/sys/class/hwmon/` (`temp1_input` of `coretemp`) |
+| **GPU Frequency** | `/sys/class/drm/card0/gt_act_freq_mhz` |
+| **Fan Speed** | `/sys/class/hwmon/` (First available `fan1_input`) |
+| **Battery** | `/sys/class/power_supply/BAT0/` |
+| **CPU Throttling** | `/sys/devices/system/cpu/intel_pstate/max_perf_pct` |
+| **GPU Throttling** | `/sys/class/drm/card0/gt_max_freq_mhz` and `/sys/class/drm/card0/gt_boost_freq_mhz` |
 
 If your hardware uses different paths (AMD, discrete GPU, different thermal zones, a second battery, etc.) the plugin will partially or fully fail to work until the source is adjusted — the throttling logic in particular assumes `intel_pstate` and an Intel iGPU. <br><br>Because sensor names (`PCH`, `WiFi`, `VRM`, etc.) are hardcoded specifically for my machine, unrecognized thermal sensors on other systems may be labeled incorrectly or skipped entirely.
 
 ---
 
-## Build Dependencies (Debian)
-```bash
-sudo apt update
-sudo apt install  build-essential pkg-config libxfce4panel-2.0-dev libxfce4ui-2-dev libgtk-3-dev libnotify-dev
+## Configuration
+
+To adjust the color thresholds and performance limits for your specific hardware, modify these values in `sysmonitor.c`
+
+```c
+// COLOR THRESHOLDS
+
+// RAM colors (20 = 2.0 GB, 35 = 3.5 GB)
+set_label(&s->l_mem, buf, LVL_CLASSES[get_level(mem_u, 20, 35, 50, 65)]);
+
+// CPU Frequency colors (kHz)
+set_label(&s->l_cpu_f, buf, LVL_CLASSES[get_level(cpu_f, 1200000, 2000000, 2800000, 3400000)]);
+
+// CPU Temperature colors (°C)
+set_label(&s->l_temp, buf, LVL_CLASSES[get_level(temp, 45, 55, 75, 85)]);
+
+// THROTTLING THRESHOLDS
+
+// Set the temperature thresholds (°C) that trigger each throttling level
+new_throttle = (temp >= 85) ? 3 : (temp >= 80) ? 2 : (temp >= 75) ? 1 : 0; 
+
+// Set CPU/GPU limits for each level (e.g., Level 3 limits CPU to 50% and GPU to 300 MHz)
+if (new_throttle == 3) { write_sys(CPU_MAX_PCT,"50"); write_sys(GPU_MAX,"300"); write_sys(GPU_BOOST,"300"); }
 ```
 ---
 
+## Build Dependencies (Debian)
+```bash
+sudo apt update
+sudo apt install build-essential pkg-config libxfce4panel-2.0-dev libxfce4ui-2-dev libgtk-3-dev libnotify-dev
+```
+---
+  
 ## Compilation
 
 ```bash
