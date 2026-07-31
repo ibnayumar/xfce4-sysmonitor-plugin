@@ -56,14 +56,17 @@ To adjust the color thresholds and performance limits for your specific hardware
 ```c
 // COLOR THRESHOLDS
 
-// RAM colors (20 = 2.0 GB, 35 = 3.5 GB)
-set_label(&s->l_mem, buf, LVL_CLASSES[get_level(mem_u, 20, 35, 50, 65)]);
+// CPU Utilization colors (%)
+set_label(&s->l_cpu_u, buf, LVL_CLASSES[get_level(usage, 10, 40, 70, 90)]);
 
 // CPU Frequency colors (kHz)
 set_label(&s->l_cpu_f, buf, LVL_CLASSES[get_level(cpu_f, 1200000, 2000000, 2800000, 3400000)]);
 
 // CPU Temperature colors (°C)
 set_label(&s->l_temp, buf, LVL_CLASSES[get_level(temp, 45, 55, 75, 85)]);
+
+// RAM colors (20 = 2.0 GB, 35 = 3.5 GB)
+set_label(&s->l_mem, buf, LVL_CLASSES[get_level(mem_u, 20, 35, 50, 65)]);
 
 // THROTTLING THRESHOLDS
 
