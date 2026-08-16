@@ -57,7 +57,7 @@ static const char * const ALL_DYN_CLASSES[] = {
 typedef struct { 
     GtkWidget *widget; 
     char cur_class[32];
-    char cur_text[16]; 
+    char cur_text[32]; 
 } SysMonLabel;
 
 typedef struct { 
@@ -643,6 +643,7 @@ static gboolean update_display(gpointer user_data) {
     
     /* Change performance modes based on threshold state transitions */
     if (new_throttle != s->throttle_lvl) {
+		gboolean first_run = (s->throttle_lvl == -1);
         s->throttle_lvl = new_throttle; 
         const char *msg;
         if      (new_throttle == 3) { write_sys(CPU_MAX_PCT,"50"); write_sys(GPU_MAX,"300"); write_sys(GPU_BOOST,"300"); msg = "Level 3 Throttling"; }
@@ -650,8 +651,12 @@ static gboolean update_display(gpointer user_data) {
         else if (new_throttle == 1) { write_sys(CPU_MAX_PCT,"85"); write_sys(GPU_MAX,"900"); write_sys(GPU_BOOST,"900"); msg = "Level 1 Throttling"; }
         else                     { write_sys(CPU_MAX_PCT,"100"); write_sys(GPU_MAX,"1100"); write_sys(GPU_BOOST,"1100"); msg = "System Unconstrained"; }
         if (strcmp(msg, s->f_notify)) { 
-            g_strlcpy(s->f_notify, msg, sizeof(s->f_notify)); 
-            send_state_notify(&s->n_throttle, msg, new_throttle == 3, s->notify_initialized); 
+            g_strlcpy(s->f_notify, msg, sizeof(s->f_notify));
+			
+			/* Suppress baseline unconstrained notification on initial startup */
+			if (!first_run || new_throttle > 0) { 
+            	send_state_notify(&s->n_throttle, msg, new_throttle == 3, s->notify_initialized); 
+			}
         }
     }
     
